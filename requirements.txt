@@ -1,0 +1,5 @@
+chonker>=1.2.0
+numpy
+pyyaml
+scikit-learn
+torch
