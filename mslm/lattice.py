@@ -6,7 +6,7 @@ value over a tensor-represented graph
 Authors:
     C.M. Downey (cmdowney@uw.edu)
 """
-from typing import List
+from typing import List, Tuple
 
 import torch
 import numpy as np
@@ -60,7 +60,7 @@ class AcyclicLattice():
         assert len(lengths) == shape[2]
 
         using_cuda = arcs.is_cuda
-        self.device = arcs.get_device if using_cuda else 'cpu'
+        self.device = arcs.get_device() if using_cuda else 'cpu'
 
         self.arcs = arcs
         self.numpy_arcs = self.arcs.clone().detach().cpu().numpy()
@@ -256,7 +256,7 @@ class AcyclicLattice():
         )
         return marginals
 
-    def best_path(self) -> tuple[list, list]:
+    def best_path(self) -> Tuple[list, list]:
         """
         Return the highest-probability path through the lattice
         """
