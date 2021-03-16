@@ -1,5 +1,5 @@
 #!/bin/sh
-source activate cp
+source activate mslm
 
 python3 -u mslm/run_mslm.py \
   Data/toy.txt \

@@ -1,5 +1,5 @@
 #!/bin/sh
-source activate cp
+source activate mslm
 
 MODEL_NAME=$1
 TRAIN_FILE=$2

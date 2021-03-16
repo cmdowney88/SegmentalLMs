@@ -1,4 +1,4 @@
-chonker>=1.2.0
+chonker==1.4.0
 numpy
 pyyaml
 scikit-learn

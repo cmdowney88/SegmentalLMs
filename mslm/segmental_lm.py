@@ -384,7 +384,6 @@ class SegmentalLanguageModel(nn.Module):
         lattice = AcyclicLattice(
             arcs=segment_scores,
             lengths=lengths_wo_bos,
-            device=device,
             expected_length_exponent=length_exponent
         )
 
