@@ -1,6 +1,5 @@
-python>=3.5
 chonker==1.4.0
 numpy
 pyyaml
 scikit-learn
-torch>=1.7
+torch==1.7.1
