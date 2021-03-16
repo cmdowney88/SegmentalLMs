@@ -6,6 +6,8 @@ value over a tensor-represented graph
 Authors:
     C.M. Downey (cmdowney@uw.edu)
 """
+from typing import List
+
 import torch
 import numpy as np
 from torch import Tensor
@@ -49,7 +51,7 @@ class AcyclicLattice():
     def __init__(
         self,
         arcs: Tensor,
-        lengths: list[int],
+        lengths: List[int],
         expected_length_exponent: float = 2.0,
         neg_log_inf: float = -1000000.0
     ):

@@ -1,3 +1,4 @@
+python>=3.5
 chonker==1.4.0
 numpy
 pyyaml
