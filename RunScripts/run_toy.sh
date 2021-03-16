@@ -1,7 +1,7 @@
 #!/bin/sh
 source activate mslm
 
-python3 -u mslm/run_mslm.py \
+python3 -mu mslm \
   Data/toy.txt \
   Models/toy \
   train \

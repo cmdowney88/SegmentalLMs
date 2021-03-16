@@ -5,7 +5,7 @@ MODEL_NAME=$1
 TRAIN_FILE=$2
 DEV_FILE=$3
 
-python3 -u mslm/run_mslm.py \
+python3 -u -m mslm \
     --input_file=$TRAIN_FILE \
     --model_path=Models/${MODEL_NAME} \
     --mode=train \
