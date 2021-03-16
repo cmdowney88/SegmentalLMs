@@ -31,8 +31,8 @@ from sklearn.metrics import matthews_corrcoef as mcc_metric
 from sklearn.metrics import precision_recall_fscore_support as fscore
 from torch.utils.data import DataLoader, RandomSampler
 
-from mslm_config import MSLMConfig
-from segmental_lm import SegmentalLanguageModel
+from .mslm_config import MSLMConfig
+from .segmental_lm import SegmentalLanguageModel
 
 # ------------------------------------------------------------------------------
 # Auxiliary Function Definitions

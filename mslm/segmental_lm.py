@@ -19,8 +19,8 @@ from torch.nn.modules.transformer import (
     TransformerEncoder, TransformerEncoderLayer
 )
 
-from lattice import AcyclicLattice
-from segmental_transformer import (
+from .lattice import AcyclicLattice
+from .segmental_transformer import (
     PositionalEncoding, SegmentalTransformerEncoder
 )
 
