@@ -721,7 +721,7 @@ def predict(args, config, device, logger):
 
     eval_args = {
         'model': model,
-        'data': input_dataloader,
+        'data_loader': input_dataloader,
         'device': device,
         'max_seg_len': config.max_seg_length,
         'eoseg_idx': eoseg_idx,
@@ -738,7 +738,7 @@ def predict(args, config, device, logger):
 
     stat_dict.update({"elapsed time": f"{elapsed}s"})
 
-    logger.info(statbar_string(stat_dict))
+    print(statbar_string(stat_dict), file=sys.stderr)
 
     for seg in segmentations:
         print(' '.join([''.join(segment) for segment in seg]))
@@ -814,9 +814,6 @@ def main():
     else:
         config = MSLMConfig()
 
-    logger.info('Model Configuration:')
-    print(config.__dict__)
-
     # Set the random seed for all necessary packages
     random.seed(config.seed)
     torch.manual_seed(config.seed)
@@ -825,6 +822,8 @@ def main():
     # Call the proper function (train/predict) based on what mode the script is
     # run in
     if args.mode == 'train':
+        logger.info('Model Configuration:')
+        print(config.__dict__)
         args.train_file = args.input_file
         train(args=args, config=config, device=device, logger=logger)
     elif args.mode == 'eval' or args.mode == 'predict':
