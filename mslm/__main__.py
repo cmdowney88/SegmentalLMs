@@ -401,7 +401,8 @@ def train(args, config, device, logger) -> None:
             'encoder_dropout': config.encoder_dropout,
             'num_dec_layers': config.num_decoder_layers,
             'autoencoder': config.autoencoder,
-            'attention_window': config.attention_window
+            'attention_window': config.attention_window,
+            'smart_position': config.smart_position
         }
         model = SegmentalLanguageModel(model_architecture).to(device)
 

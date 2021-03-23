@@ -20,6 +20,7 @@ class MSLMConfig():
         encoder_dim=256,
         num_heads=4,
         feedforward_dim=256,
+        smart_position=True,
         attention_window=None,
         encoder_dropout=0.1,
         num_decoder_layers=1,
@@ -57,6 +58,7 @@ class MSLMConfig():
         self.encoder_dim = encoder_dim
         self.num_heads = num_heads
         self.feedforward_dim = feedforward_dim
+        self.smart_position = smart_position
         self.attention_window = attention_window
         self.encoder_dropout = encoder_dropout
         self.num_decoder_layers = num_decoder_layers

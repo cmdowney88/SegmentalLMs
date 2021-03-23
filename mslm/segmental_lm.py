@@ -21,7 +21,7 @@ from torch.nn.modules.transformer import (
 
 from .lattice import AcyclicLattice
 from .segmental_transformer import (
-    PositionalEncoding, SegmentalTransformerEncoder
+    SegmentalTransformerEncoder
 )
 
 
@@ -71,7 +71,8 @@ class SegmentalLanguageModel(nn.Module):
             num_heads=self.num_heads,
             ffwd_dim=self.ffwd_dim,
             autoencoder=self.autoencoder,
-            attention_window=self.attention_window
+            attention_window=self.attention_window,
+            smart_position=self.smart_position
         )
 
         # Initialize the lexicon if it is being used
@@ -436,17 +437,22 @@ class SLMEncoder(nn.Module):
         enc_type: The architecture of encoder to use. Current options are
             ``lstm`` and ``transformer``. Default: ``transformer``
         input_dropout: The rate of dropout to apply before the encoder
-            (including positional encoding). Default: 0.1
+            (after positional encoding). Default: 0.1
         encoder_dropout: The rate of dropout to apply between encoder layers.
             Default: 0.1
         num_heads: The number of attention heads to use for a transformer
-            encoder. Default: 8
+            encoder. Default: 4
         ffwd_dim: The dimension of the feedforward layers in a transformer
             encoder. Default: 256
         autoencoder: Whether to apply no attention mask and use an autoencoding
             setup rather than a traditional language model. Default: ``False``
         attention_window: The size of the attention window to apply around or
             before the masked/unknown span
+        max_seq_length: The absolute max sequence length expected to be encoded
+            (used for sinusoidal positional encoding). Default: 4096
+        smart_position: Whether to learn the proportion with which to add the 
+            original and positional embeddings. Adds a linear layer with
+            ``2 * encoder_dim`` parameters. Default: ``True``
     """
     def __init__(
         self,
@@ -456,10 +462,12 @@ class SLMEncoder(nn.Module):
         enc_type: str = 'transformer',
         input_dropout: float = 0.1,
         encoder_dropout: float = 0.1,
-        num_heads: int = 8,
+        num_heads: int = 4,
         ffwd_dim: int = 256,
         autoencoder: bool = 'False',
-        attention_window: int = None
+        attention_window: int = None,
+        max_seq_length: int = 4096,
+        smart_position: bool = True
     ):
         super().__init__()
         self.enc_type = enc_type
@@ -485,9 +493,29 @@ class SLMEncoder(nn.Module):
         # If the encoder is to be transformer-based, initialize the Positional
         # Encoding component and set the h and c state to None
         if self.enc_type == 'transformer':
-            self.pos_encoder = PositionalEncoding(
-                encoder_dim, dropout=encoder_dropout
+            
+            # Register a static sinusoidal positional encoding, as well as an
+            # optional feedforward layer to determine the relative strength of
+            # the original and positional embeddings
+            pe = torch.zeros(max_seq_length, encoder_dim)
+            position = torch.arange(
+                0, max_seq_length, dtype=torch.float
+            ).unsqueeze(1)
+            scale = -np.log(10000.0) / encoder_dim
+            div_term = torch.exp(
+                torch.arange(0, encoder_dim, 2).float() * scale
             )
+            pe[:, 0::2] = torch.sin(position * div_term)
+            pe[:, 1::2] = torch.cos(position * div_term)
+            pe = pe.unsqueeze(0).transpose(0, 1)
+            self.register_buffer('pe', pe)
+            if smart_position:
+                self.positional_proportion = nn.Linear(2 * encoder_dim, 1)
+                self.positional_proportion.weight.data.uniform_(-0.1, 0.1)
+                self.positional_proportion.bias.data.zero_()
+            else:
+                self.positional_proportion = None
+            
             self.h_init_state = None
             self.c_init_state = None
             
@@ -518,6 +546,7 @@ class SLMEncoder(nn.Module):
         # states, also set the positional encoding to be None
         elif self.enc_type == 'lstm':
             self.pos_encoder = None
+            self.positional_proportion = None
             self.h_init_state = nn.Parameter(
                 torch.zeros(num_enc_layers, 1, encoder_dim)
             )
@@ -557,7 +586,6 @@ class SLMEncoder(nn.Module):
         batch_size = x.size(1)
 
         x = self.input_to_enc_dim(x)
-        x = self.input_dropout(x)
 
         if self.enc_type == 'transformer':
             # Create the padding mask
@@ -569,7 +597,20 @@ class SLMEncoder(nn.Module):
             padding_mask = padding_mask.bool().to(device)
 
             # Add the positional encoding to the embedding
-            pos_embedded_seq = self.pos_encoder(x)
+            pos_encoding = self.pe[:seq_len, :]
+            if self.positional_proportion:
+                pos_encoding = pos_encoding.repeat(1, batch_size, 1)
+                concatenated_embedding = torch.cat((x, pos_encoding), dim=2)
+                emb_factor = 1.0 + torch.relu(
+                    self.positional_proportion(concatenated_embedding)
+                )
+                scaled_embedding = emb_factor * x
+                pos_embedded_seq = scaled_embedding + pos_encoding
+            else:
+                pos_embedded_seq = x + pos_encoding
+
+            # Apply dropout before feeding to the encoder
+            pos_embedded_seq = self.input_dropout(pos_embedded_seq)
 
             # Run the input through the transformer block
             if not self.autoencoder:
@@ -589,6 +630,8 @@ class SLMEncoder(nn.Module):
                     pos_embedded_seq, src_key_padding_mask=padding_mask
                 )
         elif self.enc_type == 'lstm':
+            # Apply dropout before feeding to the encoder
+            x = self.input_dropout(x)
             # Expand h and c to match the batch size, and run the input through
             # the LSTM block
             h = self.h_init_state.expand(-1, batch_size, -1).contiguous()
