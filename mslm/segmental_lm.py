@@ -466,7 +466,7 @@ class SLMEncoder(nn.Module):
         ffwd_dim: int = 256,
         autoencoder: bool = 'False',
         attention_window: int = None,
-        max_seq_length: int = 4096,
+        max_seq_length: int = 2048,
         smart_position: bool = True
     ):
         super().__init__()
