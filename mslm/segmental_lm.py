@@ -510,9 +510,8 @@ class SLMEncoder(nn.Module):
             pe = pe.unsqueeze(0).transpose(0, 1)
             self.register_buffer('pe', pe)
             if smart_position:
-                self.positional_proportion = nn.Linear(2 * encoder_dim, 1)
-                self.positional_proportion.weight.data.uniform_(-0.1, 0.1)
-                self.positional_proportion.bias.data.zero_()
+                self.positional_proportion = nn.Linear(2 * encoder_dim, 1, bias=False)
+                self.positional_proportion.weight.data.fill_(0.0001)
             else:
                 self.positional_proportion = None
             

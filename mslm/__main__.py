@@ -313,9 +313,12 @@ def train(args, config, device, logger) -> None:
             )
         if config.pretrained_embedding:
             pretrained_embeddings = ctf.import_embeddings(
-                config.pretrained_embedding, vocab, init_range=0.1, logger=logger
+                config.pretrained_embedding,
+                vocab,
+                init_range=0.1,
+                logger=logger
             )
-    
+
     vocab_size = vocab.size()
     pad_idx = vocab.tok_to_id['<pad>']
     eoseg_idx = vocab.tok_to_id['<eoseg>']
@@ -405,14 +408,29 @@ def train(args, config, device, logger) -> None:
             'smart_position': config.smart_position
         }
         model = SegmentalLanguageModel(model_architecture).to(device)
+    
+    # Have the positional embedding proportion be learned at half the rate
+    # as the rest of the parameters
+    slowed_param_names = [
+        'encoder.positional_proportion.weight',
+        'encoder.positional_proportion.bias'
+    ]
+    slowed_params = [
+        tensor for name, tensor in model.named_parameters() if name in slowed_param_names
+    ]
+    params = [
+        tensor for name, tensor in model.named_parameters() if name not in slowed_param_names
+    ]
+    param_list = [
+        {'params': params},
+        {'params': slowed_params, 'lr': config.learning_rate / 2}
+    ]
 
     # Initialize the optimizer using either Stochastic Gradient Descent or Adam
     if config.optimizer_algorithm == 'sgd':
-        optimizer = torch.optim.SGD(model.parameters(), lr=config.learning_rate)
+        optimizer = torch.optim.SGD(param_list, lr=config.learning_rate)
     elif config.optimizer_algorithm == 'adam':
-        optimizer = torch.optim.Adam(
-            model.parameters(), lr=config.learning_rate
-        )
+        optimizer = torch.optim.Adam(param_list, lr=config.learning_rate)
     else:
         raise ValueError(
             f'Optimizer mode {config.optimizer_algorithm} is not valid'
@@ -463,7 +481,7 @@ def train(args, config, device, logger) -> None:
         'length_exponent': config.length_exponent,
         'length_penalty_lambda': config.length_penalty_lambda
     }
-    
+
     # Initialize base metrics and counters, begin training
     best_loss = float("inf")
     best_f1 = 0
@@ -472,7 +490,7 @@ def train(args, config, device, logger) -> None:
     global_step = 0
     checkpoints_wo_improvement = 0
     early_stop = False
-    
+
     logger.info(f"Starting Training")
     model.train()
 
@@ -492,10 +510,10 @@ def train(args, config, device, logger) -> None:
 
             metrics = [
                 global_step, "n/a",
-                round(scheduler.get_last_lr()[0], 7), "n/a",
-                dev_stat_dict['dev loss'], dev_stat_dict['mcc'],
-                dev_stat_dict['f1'], dev_stat_dict['precision'],
-                dev_stat_dict['recall']
+                round(scheduler.get_last_lr()[0],
+                      7), "n/a", dev_stat_dict['dev loss'],
+                dev_stat_dict['mcc'], dev_stat_dict['f1'],
+                dev_stat_dict['precision'], dev_stat_dict['recall']
             ]
             metrics = [str(m) for m in metrics]
             with open(args.model_path + '.csv', 'a+') as data_file:
