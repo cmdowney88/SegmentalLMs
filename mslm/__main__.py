@@ -696,7 +696,7 @@ def train(args, config, device, logger) -> None:
 def predict(args, config, device, logger):
 
     start_time = time.time()
-
+    
     checkpoint = torch.load(args.model_path + '.model', map_location=device)
     vocab = wr.Vocab.from_saved(checkpoint['vocab_file'])
     eoseg_idx = vocab.tok_to_id['<eoseg>']
@@ -708,20 +708,18 @@ def predict(args, config, device, logger):
         char_ids_to_subword_id = import_or_create_subword_vocab(
             vocab, subword_vocab_file
         )
-
+    
     model = SegmentalLanguageModel(checkpoint['model_architecture']).to(device)
     model.load_state_dict(checkpoint['state_dict'])
     model.eval()
-
+    
     input_text = wr.character_tokenize(
         args.input_file, preserve_case=config.preserve_case, edge_tokens=True
     )
     input_data = [vocab.to_ids(line) for line in input_text]
     num_lines = len(input_data)
-    divisors = [x for x in range(1, 33) if num_lines % x == 0]
-    batch_size = max(divisors)
     input_set = VariableLengthDataset(
-        input_data, batch_size=batch_size, pad_value=pad_idx, drop_final=False
+        input_data, batch_size=16384, batch_by='tokens', pad_value=pad_idx, drop_final=False
     )
     input_dataloader = DataLoader(input_set, batch_size=None)
 
@@ -749,7 +747,7 @@ def predict(args, config, device, logger):
         'gold_boundaries': all_gold_boundaries,
         'unsort_permutation': input_set.unsort_pmt
     }
-
+    
     with torch.no_grad():
         stat_dict, segmentations = do_eval(**eval_args)
 
