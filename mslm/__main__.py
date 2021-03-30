@@ -408,7 +408,7 @@ def train(args, config, device, logger) -> None:
             'smart_position': config.smart_position
         }
         model = SegmentalLanguageModel(model_architecture).to(device)
-    
+
     # Have the positional embedding proportion be learned at half the rate
     # as the rest of the parameters
     slowed_param_names = [
@@ -416,14 +416,21 @@ def train(args, config, device, logger) -> None:
         'encoder.positional_proportion.bias'
     ]
     slowed_params = [
-        tensor for name, tensor in model.named_parameters() if name in slowed_param_names
+        tensor for name, tensor in model.named_parameters()
+        if name in slowed_param_names
     ]
     params = [
-        tensor for name, tensor in model.named_parameters() if name not in slowed_param_names
+        tensor for name, tensor in model.named_parameters()
+        if name not in slowed_param_names
     ]
     param_list = [
-        {'params': params},
-        {'params': slowed_params, 'lr': config.learning_rate / 2}
+        {
+            'params': params
+        },
+        {
+            'params': slowed_params,
+            'lr': config.learning_rate / 2
+        }
     ]
 
     # Initialize the optimizer using either Stochastic Gradient Descent or Adam
