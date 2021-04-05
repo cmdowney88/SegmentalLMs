@@ -3,7 +3,7 @@
     "model_dim": 256,
     "pretrained_embedding": "Data/SNLM_sets/pku/pku_w2v_32ep",
     "encoder_type": "transformer",
-    "transformer_mask_type": "cloze",
+    "transformer_mask_type": "subsequent",
     "encoder_dim": 256,
     "num_heads": 4,
     "feedforward_dim": 509,
@@ -18,7 +18,7 @@
     "max_train_steps": 8192,
     "checkpoint_interval": 128,
     "num_warmup_steps": 1024,
-    "learning_rate": 0.0008,
+    "learning_rate": 0.001,
     "warmup": "linear",
     "decay": "linear"
 }

@@ -1,7 +1,7 @@
 {
     "seed": 2,
     "model_dim": 256,
-    "pretrained_embedding": "Data/SNLM_sets/pku/pku_w2v_32ep",
+    "pretrained_embedding": "Data/SNLM_sets/ptb/ptb_w2v_32ep",
     "encoder_type": "transformer",
     "transformer_mask_type": "cloze",
     "encoder_dim": 256,
@@ -9,7 +9,7 @@
     "feedforward_dim": 509,
     "encoder_dropout": 0,
     "num_decoder_layers": 1,
-    "max_seg_length": 5,
+    "max_seg_length": 10,
     "length_penalty_lambda": null,
     "use_lexicon": false,
     "batch_size": 8192,
@@ -18,7 +18,7 @@
     "max_train_steps": 8192,
     "checkpoint_interval": 128,
     "num_warmup_steps": 1024,
-    "learning_rate": 0.0008,
+    "learning_rate": 0.005,
     "warmup": "linear",
     "decay": "linear"
 }
