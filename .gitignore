@@ -10,7 +10,6 @@ __pycache__
 *.args
 *.err
 *.log
-*.out
 *.model
 *.ipynb
 *.cmd
