@@ -20,6 +20,9 @@ The results from the accompanying paper can be found in the `Output` directory.
   of the model output, and `*.bpc` contain the bits-per-character scores for the
   models on the test sets
 
+The results from the original April 2021 pre-print (which we will refer to as
+ Experiment Set A) were produced on commit `66e7891`
+
 ## Usage
 
 The top-level scripts for training and experimentation can be found in
