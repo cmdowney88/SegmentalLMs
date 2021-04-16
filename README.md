@@ -2,11 +2,10 @@
 
 This repository contains the code from
  _A Masked Segmental Language Model for Natural Language Segmentation_ (2021,
- C.M. Downey, Fei Xia, and Shane Steinert-Threlkeld). The _mslm_ package can be
- used to train and use Segmental Language Models, as first described by Sun and
- Deng (2018) and Kawakami, Dyer, and Blunsom (2019), with either the original
- LSTM-based encoder (a Recurrent SLM), or the span-masking Transformer encoder
- introduced in the present paper
+ C.M. Downey, Fei Xia, Gina-Anne Levow and Shane Steinert-Threlkeld). The _mslm_
+ package can be used to train and use Segmental Language Models, as first
+ described by Sun and Deng (2018) and Kawakami, Dyer, and Blunsom (2019), with
+ either the original LSTM-based encoder (a Recurrent SLM), or the span-masking Transformer encoder introduced in the present paper
 
 This repository also contains several standard datasets for word-segmentation
  experimentation, as well as utilities and the SIGHAN scoring script (Emerson

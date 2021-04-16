@@ -28,7 +28,7 @@ from .segmental_transformer import (
 class SegmentalLanguageModel(nn.Module):
     """
     A PyTorch implementation of a Segmental Language Model (Sun and Deng 2018;
-    Kawakami, Dyer, and Blunsom 2019; Downey and Steinert-Threlkeld 2021)
+    Kawakami, Dyer, and Blunsom 2019; Downey et al. 2021)
 
     A Segmental Language Model consists of a "Context Encoder", which encodes a
     language-modeling context with which to predict the next or missing segment,

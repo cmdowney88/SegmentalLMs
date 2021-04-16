@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# This module is a modified version of that from Sun and Deng (2018)
 
 from __future__ import absolute_import
 from __future__ import division
