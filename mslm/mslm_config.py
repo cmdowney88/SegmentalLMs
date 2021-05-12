@@ -20,7 +20,7 @@ class MSLMConfig():
         encoder_dim=256,
         num_heads=4,
         feedforward_dim=256,
-        smart_position=True,
+        smart_position=False,
         attention_window=None,
         encoder_dropout=0.1,
         num_decoder_layers=1,

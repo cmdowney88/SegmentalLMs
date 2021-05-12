@@ -6,6 +6,7 @@ segmentation
 Authors:
     C.M. Downey (cmdowney@uw.edu)
 """
+import math
 import time
 import warnings
 from typing import List, Tuple
@@ -451,8 +452,8 @@ class SLMEncoder(nn.Module):
         max_seq_length: The absolute max sequence length expected to be encoded
             (used for sinusoidal positional encoding). Default: 4096
         smart_position: Whether to learn the proportion with which to add the 
-            original and positional embeddings. Adds a linear layer with
-            ``2 * encoder_dim`` parameters. Default: ``True``
+            original and positional embeddings at each position. Adds a linear
+            layer with ``2 * encoder_dim`` parameters. Default: ``False``
     """
     def __init__(
         self,
@@ -467,7 +468,7 @@ class SLMEncoder(nn.Module):
         autoencoder: bool = 'False',
         attention_window: int = None,
         max_seq_length: int = 2048,
-        smart_position: bool = True
+        smart_position: bool = False
     ):
         super().__init__()
         self.enc_type = enc_type
@@ -497,23 +498,22 @@ class SLMEncoder(nn.Module):
             # Register a static sinusoidal positional encoding, as well as an
             # optional feedforward layer to determine the relative strength of
             # the original and positional embeddings
-            pe = torch.zeros(max_seq_length, encoder_dim)
-            position = torch.arange(
-                0, max_seq_length, dtype=torch.float
-            ).unsqueeze(1)
-            scale = -np.log(10000.0) / encoder_dim
-            div_term = torch.exp(
-                torch.arange(0, encoder_dim, 2).float() * scale
-            )
-            pe[:, 0::2] = torch.sin(position * div_term)
-            pe[:, 1::2] = torch.cos(position * div_term)
-            pe = pe.unsqueeze(0).transpose(0, 1)
+            pe = np.zeros((max_seq_length, encoder_dim))
+            for pos in range(max_seq_length):
+                for i in range(0, math.ceil(encoder_dim / 2)):
+                    pe[pos, 2 * i] = np.sin(pos / (10000 ** (2 * i / encoder_dim)))
+                    if 2 * i + 1 < encoder_dim:
+                        pe[pos, 2 * i + 1] = np.cos(pos / (10000 ** (2 * i / encoder_dim)))
+            model_dtype = self.input_to_enc_dim.weight.dtype
+            pe = torch.tensor(pe, dtype=model_dtype).unsqueeze(1)
             self.register_buffer('pe', pe)
             if smart_position:
-                self.positional_proportion = nn.Linear(2 * encoder_dim, 1, bias=False)
-                self.positional_proportion.weight.data.fill_(0.0001)
+                self.positional_emb_proportion = nn.Linear(2 * encoder_dim, 1, bias=False)
+                self.positional_emb_proportion.weight.data.fill_(0.0001)
+                self.emb_scale_factor = None
             else:
-                self.positional_proportion = None
+                self.positional_emb_proportion = None
+                self.emb_scale_factor = nn.Parameter(torch.tensor([1.0]))
             
             self.h_init_state = None
             self.c_init_state = None
@@ -545,7 +545,8 @@ class SLMEncoder(nn.Module):
         # states, also set the positional encoding to be None
         elif self.enc_type == 'lstm':
             self.pos_encoder = None
-            self.positional_proportion = None
+            self.positional_emb_proportion = None
+            self.emb_scale_factor = None
             self.h_init_state = nn.Parameter(
                 torch.zeros(num_enc_layers, 1, encoder_dim)
             )
@@ -597,16 +598,16 @@ class SLMEncoder(nn.Module):
 
             # Add the positional encoding to the embedding
             pos_encoding = self.pe[:seq_len, :]
-            if self.positional_proportion:
+            if self.positional_emb_proportion:
                 pos_encoding = pos_encoding.repeat(1, batch_size, 1)
                 concatenated_embedding = torch.cat((x, pos_encoding), dim=2)
                 emb_factor = 1.0 + torch.relu(
-                    self.positional_proportion(concatenated_embedding)
+                    self.positional_emb_proportion(concatenated_embedding)
                 )
                 scaled_embedding = emb_factor * x
                 pos_embedded_seq = scaled_embedding + pos_encoding
             else:
-                pos_embedded_seq = x + pos_encoding
+                pos_embedded_seq = (self.emb_scale_factor * x) + pos_encoding
 
             # Apply dropout before feeding to the encoder
             pos_embedded_seq = self.input_dropout(pos_embedded_seq)
@@ -670,7 +671,7 @@ class SLMLexicon(nn.Module):
         self.encoding_to_subword_hidden = nn.Linear(d_enc, d_model)
         self.subword_decoder = nn.Linear(d_model, subword_vocab_size)
         self.encoding_to_mixture_hidden = nn.Linear(d_enc, d_model)
-        self.hidden_to_mixture_proportion = nn.Linear(d_model, 1)
+        self.hidden_to_mixture_proportion = nn.Linear(d_model, 1, bias=False)
         self.sigmoid = nn.Sigmoid()
         self.log_softmax = nn.LogSoftmax(dim=2)
 
@@ -687,7 +688,6 @@ class SLMLexicon(nn.Module):
         self.encoding_to_subword_hidden.bias.data.zero_()
         self.subword_decoder.bias.data.zero_()
         self.encoding_to_mixture_hidden.bias.data.zero_()
-        self.hidden_to_mixture_proportion.bias.data.zero_()
 
     def forward(self, encodings: Tensor) -> Tuple[Tensor, Tensor]:
         """
