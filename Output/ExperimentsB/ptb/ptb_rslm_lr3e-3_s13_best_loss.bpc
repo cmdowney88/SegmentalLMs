@@ -1,0 +1,3 @@
+/home2/cmdowney/anaconda3/envs/mslm/lib/python3.6/site-packages/torch/nn/modules/rnn.py:61: UserWarning: dropout option adds dropout after all but last recurrent layer, so non-zero dropout expects num_layers greater than 1, but got dropout=0.1 and num_layers=1
+  "num_layers={}".format(dropout, num_layers))
+dev loss 1.958 | mcc 0.885 | f1 91.0 | precision 86.8 | recall 95.7 | elapsed time 10.89s
