@@ -1,0 +1,20 @@
+{
+    "seed": 2,
+    "model_dim": 256,
+    "pretrained_embedding": "Data/SNLM_sets/pku/pku_w2v_32ep",
+    "encoder_type": "lstm",
+    "encoder_dim": 256,
+    "encoder_dropout": 0,
+    "num_decoder_layers": 1,
+    "max_seg_length": 5,
+    "use_lexicon": false,
+    "batch_size": 8192,
+    "batch_by": "tokens",
+    "gradient_accumulation_steps": 1,
+    "max_train_steps": 8192,
+    "checkpoint_interval": 128,
+    "num_warmup_steps": 1024,
+    "learning_rate": 0.0007,
+    "warmup": "linear",
+    "decay": "linear"
+}
