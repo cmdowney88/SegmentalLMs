@@ -201,7 +201,7 @@ class SubsequentSpanEncoder(TransformerEncoderLayer):
         enc = self.norm1(enc + self.dropout1(enc1))
         enc2 = self.linear2(self.dropout(self.activation(self.linear1(enc))))
         enc = self.norm2(enc + self.dropout2(enc2))
-        return src
+        return enc
 
 
 class PositionalEncoding(nn.Module):
