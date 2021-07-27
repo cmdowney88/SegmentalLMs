@@ -21,6 +21,10 @@ The results from the accompanying paper can be found in the `Output` directory.
 
 The results from the original April 2021 pre-print (which we will refer to as
  Experiment Set A) were produced on commit `66e7891`
+ 
+The results from version 2 of the paper (which was submitted for review and
+  which we will refer to as Experiment Set B) were produced on commit
+  `820c40e`
 
 ## Usage
 
