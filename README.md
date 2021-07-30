@@ -20,11 +20,12 @@ The results from the accompanying paper can be found in the `Output` directory.
   models on the test sets
 
 The results from the original April 2021 pre-print (which we will refer to as
- Experiment Set A) were produced on commit `66e7891`
+ Experiment Set A) were produced on commit `66e7891`, and should be
+ reproduceable through commit `6b33f7a`, which we will consider the official
+ version for pre-print v1.0
  
-The results from version 2 of the paper (which was submitted for review and
-  which we will refer to as Experiment Set B) were produced on commit
-  `820c40e`
+The results from v2.0 of the paper (which is under review and which we will refer
+to as Experiment Set B) were produced on commit `820c40e`
 
 ## Usage
 
