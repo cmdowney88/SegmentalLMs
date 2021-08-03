@@ -44,7 +44,7 @@ The top-level scripts for training and experimentation can be found in
 ### Environment setup
     pip install -r requirements.txt
 
-This code requires Python >= 3.5
+This code requires Python >= 3.6
 
 ### Training
     ./RunScripts/run_mslm.sh <MODEL/CONFIG_NAME> <TRAIN_FILE> <VALIDATION_FILE>
