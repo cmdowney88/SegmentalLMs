@@ -620,10 +620,12 @@ class SLMEncoder(nn.Module):
                     shape=mask_type,
                     window=self.attention_window
                 ).to(device)
+                monotonic = (mask_type == "subsequent")
                 encoder_output = self.encoder(
                     pos_embedded_seq,
                     attn_mask=attn_mask,
-                    padding_mask=padding_mask
+                    padding_mask=padding_mask,
+                    monotonic_mask=monotonic
                 )
             else:
                 encoder_output = self.encoder(

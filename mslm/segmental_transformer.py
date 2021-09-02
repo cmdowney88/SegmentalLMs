@@ -55,7 +55,8 @@ class SegmentalTransformerEncoder(nn.Module):
         self,
         src: Tensor,
         attn_mask: Tensor = None,
-        padding_mask: Tensor = None
+        padding_mask: Tensor = None,
+        monotonic_mask: bool = False
     ) -> Tensor:
         """
         Encode input with the Segmental Transformer Encoder
@@ -78,9 +79,14 @@ class SegmentalTransformerEncoder(nn.Module):
             src, attn_mask=attn_mask, padding_mask=padding_mask
         )
         for i in range(self.n_layers):
-            output = self.subsequent_layers[i](
-                output, src, attn_mask=attn_mask, padding_mask=padding_mask
-            )
+            if monotonic_mask:
+                output = self.subsequent_layers[i](
+                    output, output, attn_mask=attn_mask, padding_mask=padding_mask
+                )
+            else:
+                output = self.subsequent_layers[i](
+                    output, src, attn_mask=attn_mask, padding_mask=padding_mask
+                )
         if self.norm:
             output = self.norm(output)
         return output
